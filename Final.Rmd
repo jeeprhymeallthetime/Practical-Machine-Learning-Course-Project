@@ -18,7 +18,8 @@ I then became suspicious and found using only the "num_window" variable was all 
 I then used all of these models to make predictions from the official test set.
 
 So I guess sometimes things are too good to be true and a 99% accurate model is possible.
-```{library("caret")
+```{
+library("caret")
 setwd("~/GitHub/Practical-Machine-Learning-Course-Project")
 df <- read.csv("pml-training.csv", na.strings=c("#DIV/0!", "NA"))
 datatesting <- read.csv("pml-testing.csv", na.strings=c("#DIV/0!", "NA"))
@@ -65,8 +66,9 @@ as.character(predict(rf5,datatesting))
 as.character(predict(rf6,datatesting))
 as.character(predict(rf7,datatesting))
 as.character(predict(rf8,datatesting))
-as.character(predict(rf9,datatesting))}
-summary(cars)
+as.character(predict(rf9,datatesting))
+
+
 
 ```
 
@@ -75,7 +77,5 @@ summary(cars)
 You can also embed plots, for example:
 
 ```{r, echo=FALSE}
-plot(cars)
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```
