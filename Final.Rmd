@@ -1,25 +1,15 @@
 ---
-title: "Course Project"
+title: "Practical Machine Learning Course Project  "
 output: html_document
 ---
 
-Practical Machine Learning Course Project  
-First, I split the training set into 2 parts, 80% going to training and 20% to validating.  This was done using the createDataPartition function and so this was a random division based on the "classe" variable
-Then I trained rf models to start.  I de-selected any columns that had NA, since many of them had 15000+ NA's out of under 16000 entries, so rather than work out the headache of cleaning the NA's I omitted them.
 
-I then used a subset of the remaining columns, partially out of a mistake because I didn't realize how many columns were clear of NAs.  The resultant RF model had a 82% accuracy when validated against the previously mentioned validation subset.
+The goal of this project is to predict how well someone performed an exercise based on data from fitness trackers worn by the subjects.  Using a large dataset consisting of quantitative measurements of movement during exercise, models are to be built in order to predict if the exercise was done correctly or incorrectly.
 
-Next, I built a model using 53 columns that have no NAs.  This model reached 99% accuracy, which leads me to feel that there is some over-fitting going on.  I then calculated the MeanDecreasedGini to find out which variables that the model was most sensitive to change.  I then selected the top 10 of these to fit another model.
-This model also received 99% accuracy.  In an effort to reduce possible over fitting, I deselected the lower 5 variables.
-This model received 99% accuracy.
-
-I then became suspicious and found using only the "num_window" variable was all that was needed to get 99% accuracy.  So I removed it and tried modeling without it.
-
-I then used all of these models to make predictions from the official test set.
-
-So I guess sometimes things are too good to be true and a 99% accurate model is possible.
-```{
+The training set was first split into 2 parts, 80% going to training and 20% to validating.  This was done using the createDataPartition function and so this was a random division based on the "classe" variable, teh variable that denotes whether or not the exercise was performed correctly. Any data columns that had NA had 15000+ NA's out of under 16000 entries were omitted.
+```{r}
 library("caret")
+library("randomForest")
 setwd("~/GitHub/Practical-Machine-Learning-Course-Project")
 df <- read.csv("pml-training.csv", na.strings=c("#DIV/0!", "NA"))
 datatesting <- read.csv("pml-testing.csv", na.strings=c("#DIV/0!", "NA"))
@@ -27,37 +17,69 @@ datatesting <- read.csv("pml-testing.csv", na.strings=c("#DIV/0!", "NA"))
 index <- createDataPartition(df$classe,p=0.8,list=FALSE)
 training <- df[index,]
 testing <- df[-index,]
+```
+
+Of the remaining columns, only the "forearm" predictors were  used to build a resultant RF model.  This was done to reduce modeling time and to get an idea of accuracy. 
 
 
-
-
-###Make a bunch of models using all the parameters without NAs.  Compare their accuracy.  
-###Then start combining predictors and compare their accuracies.  
-###Then figure out if you can improve accuracy by removing predictors
-
-
-
+```{r}
 rf1 <- randomForest(classe ~ gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf1, testing))$overall['Accuracy']
+```
+
+This model had approximately 82% accuracy when validated against the previously mentioned validation subset.  Next, a model using the 53 columns that have no NAs was produced.  
+
+```{r}
 rf2 <- randomForest(classe ~  gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z + num_window + roll_belt + pitch_belt + yaw_belt + total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z + magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm + pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y + gyros_arm_z + accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x + total_accel_dumbbell + accel_dumbbell_y + accel_dumbbell_z + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + roll_forearm + pitch_forearm + yaw_forearm +total_accel_forearm, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf2, testing))$overall['Accuracy']
+```
 
 
-summary(predict(rf1,testing)==testing$classe)
-summary(predict(rf2,testing)==testing$classe)
-confusionMatrix(testing$classe, predict(rf2, testing))
+This model reached 99% accuracy.  Assuming possible overfitting, the MeanDecreasedGini was calcualted to find out which variables that the model was most sensitive to change.  These top 10 were used to fit another model.
 
-##It feels as though this is over-fitting, so I'm going to re-run these models to find the most important variables
-
+```{r}
 names(sort(importance(rf2)[,7], decreasing=TRUE))[1:10]
 rf3 <- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf3, testing))$overall['Accuracy']
+```
+
+
+
+This model also received 99% accuracy.  In an effort to reduce possible over fitting, the lower 5 variables were deselected.
+
+
+```{r}
 rf4 <- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y+roll_forearm+magnet_dumbbell_x+roll_dumbbell, method="rf", data=training, importance=TRUE)
-summary(predict(rf3,testing)==testing$classe)
-summary(predict(rf4,testing)==testing$classe)
-confusionMatrix(testing$classe, predict(rf4, testing))
+confusionMatrix(testing$classe, predict(rf4, testing))$overall['Accuracy']
+```
+This model received 99% accuracy.
+
+
+
+
+Going further to reduce the number of predictors to depend on for the most accurate results, it was found using only the "num_window" variable was all that was needed to get 99% accuracy.  
+```{r}
 rf5<- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf5, testing))$overall['Accuracy']
 rf6<- randomForest(classe ~  num_window, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf6, testing))$overall['Accuracy']
+```
+
+An examination into how well a predictive model could be built without the num_window variable was performed. 
+```{r}
 rf7 <- randomForest(classe ~ roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y+roll_forearm+magnet_dumbbell_x+roll_dumbbell, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf7, testing))$overall['Accuracy']
 rf8<- randomForest(classe ~  roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf8, testing))$overall['Accuracy']
 rf9<- randomForest(classe ~ yaw_belt, method="rf", data=training, importance=TRUE)
+confusionMatrix(testing$classe, predict(rf9, testing))$overall['Accuracy']
+```
+
+This shows that without the num_window variable, accuracy begins to drop off for the model's predictive power.
+
+All models were to make predictions from the official test set.  In the end, all models, except the first and last, perfectly pass against the official test dataset.  Evidentally, only the num_window was needed to make accurate predictions.
+
+```{r}
 as.character(predict(rf1,datatesting))
 as.character(predict(rf2,datatesting))
 as.character(predict(rf3,datatesting))
@@ -67,15 +89,5 @@ as.character(predict(rf6,datatesting))
 as.character(predict(rf7,datatesting))
 as.character(predict(rf8,datatesting))
 as.character(predict(rf9,datatesting))
-
-
-
 ```
 
-
-####All models pass.
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-
-```
