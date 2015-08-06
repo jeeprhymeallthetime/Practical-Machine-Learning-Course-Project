@@ -84,55 +84,55 @@ testing &lt;- df[-index,]</code></pre>
 <pre class="r"><code>rf1 &lt;- randomForest(classe ~ gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf1, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.8320163</code></pre>
+## 0.8236044</code></pre>
 <p>This model had approximately 82% accuracy when validated against the previously mentioned validation subset. Next, a model using the 53 columns that have no NAs was produced.</p>
 <pre class="r"><code>rf2 &lt;- randomForest(classe ~  gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z + num_window + roll_belt + pitch_belt + yaw_belt + total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z + magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm + pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y + gyros_arm_z + accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x + total_accel_dumbbell + accel_dumbbell_y + accel_dumbbell_z + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + roll_forearm + pitch_forearm + yaw_forearm +total_accel_forearm, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf2, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.9984706</code></pre>
+## 0.9982157</code></pre>
 <p>This model reached 99% accuracy. Assuming possible overfitting, the MeanDecreasedGini was calcualted to find out which variables that the model was most sensitive to change. These top 10 were used to fit another model.</p>
 <pre class="r"><code>names(sort(importance(rf2)[,7], decreasing=TRUE))[1:10]</code></pre>
 <pre><code>##  [1] &quot;num_window&quot;        &quot;roll_belt&quot;         &quot;yaw_belt&quot;         
 ##  [4] &quot;pitch_forearm&quot;     &quot;magnet_dumbbell_z&quot; &quot;pitch_belt&quot;       
 ##  [7] &quot;magnet_dumbbell_y&quot; &quot;roll_forearm&quot;      &quot;magnet_dumbbell_x&quot;
-## [10] &quot;roll_dumbbell&quot;</code></pre>
+## [10] &quot;accel_dumbbell_y&quot;</code></pre>
 <pre class="r"><code>rf3 &lt;- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf3, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.9994902</code></pre>
+## 0.9984706</code></pre>
 <p>This model also received 99% accuracy. In an effort to reduce possible over fitting, the lower 5 variables were deselected.</p>
 <pre class="r"><code>rf4 &lt;- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y+roll_forearm+magnet_dumbbell_x+roll_dumbbell, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf4, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.9992353</code></pre>
+## 0.9989804</code></pre>
 <p>This model received 99% accuracy.</p>
 <p>Going further to reduce the number of predictors to depend on for the most accurate results, it was found using only the “num_window” variable was all that was needed to get 99% accuracy.</p>
 <pre class="r"><code>rf5&lt;- randomForest(classe ~  num_window+roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf5, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.9989804</code></pre>
+## 0.9984706</code></pre>
 <pre class="r"><code>rf6&lt;- randomForest(classe ~  num_window, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf6, testing))$overall['Accuracy']</code></pre>
-<pre><code>## Accuracy 
-##        1</code></pre>
+<pre><code>##  Accuracy 
+## 0.9994902</code></pre>
 <p>An examination into how well a predictive model could be built without the num_window variable was performed.</p>
 <pre class="r"><code>rf7 &lt;- randomForest(classe ~ roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z+pitch_belt+magnet_dumbbell_y+roll_forearm+magnet_dumbbell_x+roll_dumbbell, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf7, testing))$overall['Accuracy']</code></pre>
-<pre><code>## Accuracy 
-## 0.986235</code></pre>
+<pre><code>##  Accuracy 
+## 0.9877645</code></pre>
 <pre class="r"><code>rf8&lt;- randomForest(classe ~  roll_belt+yaw_belt+pitch_forearm+magnet_dumbbell_z, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf8, testing))$overall['Accuracy']</code></pre>
 <pre><code>##  Accuracy 
-## 0.9431557</code></pre>
+## 0.9467244</code></pre>
 <pre class="r"><code>rf9&lt;- randomForest(classe ~ yaw_belt, method=&quot;rf&quot;, data=training, importance=TRUE)
 confusionMatrix(testing$classe, predict(rf9, testing))$overall['Accuracy']</code></pre>
-<pre><code>##  Accuracy 
-## 0.5658934</code></pre>
+<pre><code>## Accuracy 
+## 0.564364</code></pre>
 <p>This shows that without the num_window variable, accuracy begins to drop off for the model’s predictive power.</p>
 <p>All models were to make predictions from the official test set. In the end, all models, except the first and last, perfectly pass against the official test dataset. Evidentally, only the num_window was needed to make accurate predictions.</p>
 <pre class="r"><code>as.character(predict(rf1,datatesting))</code></pre>
 <pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;C&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
-## [18] &quot;E&quot; &quot;B&quot; &quot;B&quot;</code></pre>
+## [18] &quot;E&quot; &quot;D&quot; &quot;B&quot;</code></pre>
 <pre class="r"><code>as.character(predict(rf2,datatesting))</code></pre>
 <pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
 ## [18] &quot;B&quot; &quot;B&quot; &quot;B&quot;</code></pre>
@@ -155,8 +155,8 @@ confusionMatrix(testing$classe, predict(rf9, testing))$overall['Accuracy']</code
 <pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
 ## [18] &quot;B&quot; &quot;B&quot; &quot;B&quot;</code></pre>
 <pre class="r"><code>as.character(predict(rf9,datatesting))</code></pre>
-<pre><code>##  [1] &quot;B&quot; &quot;B&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;D&quot; &quot;E&quot; &quot;C&quot;
-## [18] &quot;E&quot; &quot;C&quot; &quot;A&quot;</code></pre>
+<pre><code>##  [1] &quot;B&quot; &quot;B&quot; &quot;B&quot; &quot;C&quot; &quot;E&quot; &quot;A&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;A&quot; &quot;D&quot; &quot;E&quot; &quot;C&quot;
+## [18] &quot;B&quot; &quot;D&quot; &quot;A&quot;</code></pre>
 
 
 </div>
